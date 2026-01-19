@@ -1,8 +1,62 @@
 # Label Refinement for Object Detection with Noisy Labels
 
-This repository provides a complete pipeline for **object detection label refinement** using a learning-based approach (ReBox) and SAM (Segment Anything Model). The pipeline handles noisy bounding box labels and refines them to improve object detection performance.
+> **📄 Paper Status**: This repository contains the official implementation of our paper submitted to **IJCAI-ECAI 2026** (currently under review).
+>
+> **📌 Notes:**
+> - Detailed experimental results and analysis will be updated after the review process.
+> - We are continuously refactoring this codebase to contribute to the broader **Automated Label Refinement** research community.
+
+---
+
+## Motivation
+
+<p align="center">
+  <img width="800" alt="Motivation" src="https://github.com/user-attachments/assets/37b2b05b-14b9-4eda-afd5-7a716244c5d3" />
+</p>
+<p align="center"><b>Figure 1.</b> Common problems caused by noisy bounding box labels and improvements after refinement.</p>
+
+Object detection models are highly sensitive to the quality of training labels. As shown in Figure 1, noisy bounding box annotations lead to critical issues:
+
+- **Misdetection**: Incorrectly sized boxes cause the model to learn inaccurate object boundaries, resulting in false positives (e.g., detecting parts of buildings as vehicles).
+- **Misclassification**: Loose or shifted boxes that include surrounding context confuse the classifier (e.g., an elephant labeled as rhinoceros).
+- **Overlapping predictions**: Inconsistent box sizes during training lead to redundant, overlapping detections at inference time.
+
+Training with refined labels significantly reduces these issues, producing cleaner and more accurate predictions.
+
+---
+
+## Proposed Method: ReBox
+
+<p align="center">
+  <img width="800" alt="ReBox" src="https://github.com/user-attachments/assets/322acc66-2940-442a-a5a3-741b5466bb56" />
+</p>
+<p align="center"><b>Figure 2.</b> Overview of the ReBox label refinement pipeline.</p>
+
+We propose **ReBox**, a learning-based label refinement framework that corrects noisy bounding box annotations. The pipeline consists of two stages:
+
+- **Stage A: Candidate Generation and Preprocessing**  
+  Given a noisy anchor box, we generate a pool of candidate boxes through inverse noise modeling, isotropic scaling, and boundary perturbation. Each candidate (along with image context) is cropped and encoded via a CNN backbone.
+
+- **Stage B: Candidate Scoring and Refinement**  
+  A Transformer encoder processes all candidate features jointly, enabling cross-candidate comparison. A scoring head predicts quality scores for each candidate, and the highest-scoring box is selected as the refined annotation.
+
+This approach effectively recovers accurate bounding boxes from various types of label noise, improving downstream object detection performance.
+
+---
+
+## Experimental Results
+<p align="center">
+  <img width="800" alt="Qualitative Results" src="https://github.com/user-attachments/assets/6bf908c7-0124-4448-92b7-53031b354d99" />
+</p>
+<p align="center"><b>Figure 3.</b> Qualitative comparison of label refinement methods: (a) Original ground truth, (b) Noisy labels, (c) ReBox (Ours), (d) SAM.</p>
+
+The figure above shows qualitative comparisons across different scenarios. ReBox successfully recovers bounding boxes close to the original annotations, while SAM sometimes fails to capture the correct object boundaries, especially for objects with ambiguous edges (e.g., signatures).
+
+---
 
 ## Overview
+
+This repository provides a complete pipeline for **object detection label refinement** using ReBox and SAM (Segment Anything Model). The pipeline handles noisy bounding box labels and refines them to improve object detection performance.
 
 The pipeline consists of 7 main components executed sequentially:
 
@@ -11,10 +65,23 @@ The pipeline consists of 7 main components executed sequentially:
 | 0 | `0.Data_setting_(ultralytics).py` | Download datasets using Ultralytics |
 | 1 | `1.Data_check_and_noise_insection.py` | Inspect datasets and inject label noise |
 | 2 | `2.object_detection.ipynb` | Train baseline object detection models |
-| 3 | `3.Label_refinement_*_Final.ipynb` | Train ReBox label refinement model |
+| 3 | `3.1.Label_refinement_*_Final.ipynb` | Train ReBox label refinement model |
 | 4 | `4.SAM_model_label_refine.ipynb` | SAM-based label refinement (comparison) |
 | 5 | `5.refine_object_detection_*_Final.ipynb` | Train detection with refined labels |
 | 6 | `6.visualization_code.ipynb` | Visualize and analyze results |
+
+---
+
+## Datasets
+
+We evaluate our method on 9 diverse object detection datasets spanning various domains:
+
+<p align="center">
+  <img width="600" alt="Dataset Statistics" src="https://github.com/user-attachments/assets/969aa49e-9410-4dd7-9e2c-2dc2e5073c6b" />
+</p>
+<p align="center"><b>Table 1.</b> Dataset statistics used in our experiments.</p>
+
+The datasets cover a wide range of applications including autonomous driving (PASCAL VOC, Kitti), household objects (Home-objects), construction sites, wildlife, medical imaging (Brain-tumor, BCCD, Medical-pills), and document analysis (Signature).
 
 ---
 
@@ -178,7 +245,7 @@ TARGET_DATASETS = None  # None = all datasets
 
 ### Step 3: ReBox Label Refinement Training (Core)
 
-Open and run `3.Label_refinement_(uniform_scaling_boundary_jitter_noise_start=noise)-(n)_Final.ipynb`
+Open and run `3.1.Label_refinement_(uniform_scaling_boundary_jitter_noise_start=noise)-(n)_Final.ipynb`
 
 **What it does:**
 1. **Cell 1**: Dataset discovery and statistics
@@ -337,6 +404,26 @@ from noisy_insection import (
     JITTER_PATTERNS,     # [3, 4, 5, 6, 7]
 )
 ```
+
+---
+
+## Citation
+
+If you use this code, please cite:
+
+```bibtex
+@inproceedings{rebox2026ijcai,
+  title={ReBox: Learning-based Label Refinement for Object Detection with Noisy Annotations},
+  author={Your Name},
+  booktitle={Proceedings of the 35th International Joint Conference on Artificial Intelligence (IJCAI-ECAI 2026)},
+  year={2026},
+  note={Under Review}
+}
+```
+
+> **Note**: The citation will be updated with the official proceedings information upon acceptance.
+
+---
 
 ## License
 
